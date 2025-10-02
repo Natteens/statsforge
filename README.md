@@ -1,652 +1,290 @@
-# 🔥 StatsForge
+# ⚡ **StatsForge**
 
-<div align="center">
+Sistema modular de atributos com modificadores temporais para Unity
 
-[![Unity Version](https://img.shields.io/badge/Unity-2022.3%2B-blue.svg)](https://unity3d.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)](https://unity3d.com)
-[![Version](https://img.shields.io/badge/Version-1.0.0-green.svg)](https://github.com/Natteens/statsforge/releases)
-
-</div>
+[![Unity](https://img.shields.io/badge/Unity-2022.3+-blue.svg)](https://unity3d.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.0-orange.svg)](CHANGELOG.md)
 
 ---
 
-<div align="center">
+## 🎯 O que é?
 
-> 🎮 **Sistema modular de atributos com modificadores temporais, suporte a runtime e interface visual completa para Unity.**
+StatsForge é um sistema completo de atributos para Unity que permite:
 
-</div>
-
----
-
-## ✨ Características Principais
-
-<table>
-<tr>
-<td align="center">🧩</td>
-<td><strong>Sistema Modular</strong><br/>Arquitetura flexível e expansível</td>
-<td align="center">⚡</td>
-<td><strong>Performance Otimizada</strong><br/>Processamento eficiente em runtime</td>
-</tr>
-<tr>
-<td align="center">🎨</td>
-<td><strong>Interface Visual</strong><br/>Editor completo integrado ao Unity</td>
-<td align="center">🔄</td>
-<td><strong>Modificadores Temporais</strong><br/>Sistema avançado de buffs e debuffs</td>
-</tr>
-<tr>
-<td align="center">🏗️</td>
-<td><strong>Runtime Support</strong><br/>Funciona perfeitamente durante execução</td>
-<td align="center">📊</td>
-<td><strong>Attribute Sets</strong><br/>Configurações predefinidas reutilizáveis</td>
-</tr>
-<tr>
-<td align="center">🎯</td>
-<td><strong>Type Safe</strong><br/>Sistema fortemente tipado</td>
-<td align="center">📈</td>
-<td><strong>Escalável</strong><br/>Suporta desde projetos simples até complexos</td>
-</tr>
-</table>
+* ✅ Criar atributos customizados (Health, Mana, Strength, etc.)
+* ✅ Aplicar modificadores temporários e permanentes
+* ✅ Interface visual integrada ao Unity Editor
+* ✅ Runtime totalmente funcional
+* ✅ Performance otimizada
 
 ---
 
-## 📥 Instalação
+## 🚀 Instalação Rápida
 
-### 🚀 Via Package Manager (Recomendado)
+### Via Package Manager
 
-1. Abra o **Package Manager** (`Window > Package Manager`)
-2. Clique no botão **`+`** no canto superior esquerdo
-3. Selecione **`Add package from git URL...`**
-4. Digite a URL:
-   ```
+1. Window → Package Manager
+2. `+` → *Add package from git URL*
+3. Cole:
+
+   ```text
    https://github.com/Natteens/statsforge.git
    ```
-5. Clique em **`Add`**
-
-### 📝 Via manifest.json
-
-Adicione a seguinte linha ao arquivo `Packages/manifest.json`:
-
-```json
-{
-  "dependencies": {
-    "com.natteens.statsforge": "https://github.com/Natteens/statsforge.git"
-  }
-}
-```
 
 ---
 
-## 🚀 Guia de Uso Completo
+## 📖 Guia Rápido
 
-### 1️⃣ Configuração Inicial
-
-<details>
-<summary><strong>📊 Criar Database de Atributos</strong></summary>
-
-```csharp
-// O sistema cria automaticamente o database em:
-// Assets/Resources/Attributes/AttributeDatabase.asset
-
-// Acesse via: Tools > Attributes Manager
-```
-
-</details>
-
-<details>
-<summary><strong>⚙️ Criar Seus Primeiros Atributos</strong></summary>
-
-No Attributes Manager, crie atributos como:
-- **Health** (Categoria: Combat)
-- **Mana** (Categoria: Combat) 
-- **Strength** (Categoria: Core)
-- **Defense** (Categoria: Core)
-- **Speed** (Categoria: Movement)
-
-</details>
-
-### 2️⃣ Configurar Attribute Sets
-
-Crie sets para diferentes tipos de personagens:
-- `PlayerBaseStats`
-- `EnemyWarriorStats` 
-- `EnemyMageStats`
-- `BossStats`
-
-### 3️⃣ Implementação Básica
-
-#### 🎯 Setup do Personagem
+### 1. Setup Básico
 
 ```csharp
 using StatsForge;
-using UnityEngine;
 
-public class Player : MonoBehaviour
-{
-    [SerializeField] private AttributeSet playerStats;
-    private EntityAttributes entityAttributes;
-    
-    void Start()
-    {
-        // Obter o componente EntityAttributes
-        entityAttributes = GetComponent<EntityAttributes>();
-        
-        // O sistema inicializa automaticamente com o AttributeSet configurado
-        
-        // Escutar mudanças nos atributos
-        entityAttributes.OnAttributeChanged += OnStatChanged;
-    }
-    
-    private void OnStatChanged(AttributeType attributeType, float newValue)
-    {
-        Debug.Log($"{attributeType.Name} mudou para: {newValue}");
-    }
-}
-```
-
----
-
-## 📖 API Reference
-
-### 🎯 Acessando Valores de Atributos
-
-<table>
-<tr>
-<th>Método</th>
-<th>Descrição</th>
-<th>Exemplo</th>
-</tr>
-<tr>
-<td><code>GetValue(string)</code></td>
-<td>Obtém o valor atual de um atributo</td>
-<td><code>float health = stats.GetValue("Health");</code></td>
-</tr>
-<tr>
-<td><code>TryGet(string, out instance)</code></td>
-<td>Tenta obter a instância do atributo</td>
-<td><code>if (stats.TryGet("Mana", out var mana))</code></td>
-</tr>
-</table>
-
-#### 💡 Exemplo Prático
-
-```csharp
-public class PlayerController : MonoBehaviour
-{
+public class Player : MonoBehaviour {
     private EntityAttributes stats;
-    
-    void Start()
-    {
+    void Start() {
         stats = GetComponent<EntityAttributes>();
     }
-    
-    void Update()
-    {
-        // Obter valor atual de um atributo
-        float currentHealth = stats.GetValue("Health");
-        
-        // Verificar se um atributo existe
-        if (stats.TryGet("Mana", out ModifiableAttributeInstance manaInstance))
-        {
-            float currentMana = manaInstance.CurrentValue;
-            float maxMana = manaInstance.BaseValue;
-            
-            Debug.Log($"Mana: {currentMana}/{maxMana}");
-        }
-        
-        // Exemplo prático: movimento baseado em velocidade
-        float speed = stats.GetValue("Speed");
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+}
+```
+
+### 2. Acessar Valores
+
+```csharp
+// API simplificada
+float health = stats["Health"];
+float mana   = stats["Mana"];
+
+// API tradicional
+float speed = stats.GetValue("Speed");
+
+// Verificação segura
+if (stats.TryGetAttribute("Strength", out var strengthAttr)) {
+    float current = strengthAttr.CurrentValue;
+    float baseVal = strengthAttr.BaseValue;
+}
+```
+
+### 3. Modificar Valores
+
+```csharp
+// Definir valor (limpa modificadores)
+stats["Health"] = 100f;
+
+// Alterar base (mantém modificadores)
+stats.SetBaseValue("Health", 100f);
+
+// Aplicar modificadores
+stats.AddFlat("Health", 50f, 10f, "Healing Potion");   // +50 por 10s
+stats.AddPercentage("Speed", 20f, 5f, "Speed Boost");  // +20% por 5s
+stats.AddMultiplier("Damage", 50f, 8f, "Damage Buff"); // x1.5 por 8s
+```
+
+### 4. Escutar Mudanças
+
+```csharp
+void Start() {
+    stats.OnAttributeChanged += OnStatChanged;
+}
+
+private void OnStatChanged(AttributeType type, float newValue) {
+    if (type.Name == "Health") {
+        UpdateHealthBar(newValue);
     }
 }
 ```
-
----
-
-## 🔄 Sistema de Modificadores
-
-### ⚙️ Tipos de Modificadores
-
-```csharp
-public enum ModifierType
-{
-    Additive,      // +10 pontos
-    Multiplicative, // x1.5 multiplicador
-    Override       // Define valor específico
-}
-```
-
-### 💊 Aplicando Buffs e Debuffs
-
-<details>
-<summary><strong>🟢 Poção de Força (Buff)</strong></summary>
-
-```csharp
-public void ApplyStrengthPotion()
-{
-    if (playerStats.TryGet("Strength", out var strength))
-    {
-        var strengthBuff = new AttributeModifier
-        {
-            Type = ModifierType.Additive,
-            Value = 10f,
-            Duration = 30f, // 30 segundos
-            Source = "Strength Potion"
-        };
-        
-        strength.AddModifier(strengthBuff);
-    }
-}
-```
-
-</details>
-
-<details>
-<summary><strong>🟡 Veneno (Debuff)</strong></summary>
-
-```csharp
-public void ApplyPoison()
-{
-    if (playerStats.TryGet("Health", out var health))
-    {
-        var poisonDebuff = new AttributeModifier
-        {
-            Type = ModifierType.Multiplicative,
-            Value = -0.1f, // -10% de vida
-            Duration = 10f,
-            Source = "Poison"
-        };
-        
-        health.AddModifier(poisonDebuff);
-    }
-}
-```
-
-</details>
 
 ---
 
 ## 🎮 Exemplos Práticos
 
-### ⚔️ Sistema de Combate
+### Sistema de Combate
 
 ```csharp
-public class CombatSystem : MonoBehaviour
-{
-    public void PerformAttack(EntityAttributes attacker, EntityAttributes target)
-    {
-        // Calcular dano baseado na força do atacante
-        float attackPower = attacker.GetValue("Strength");
-        float defense = target.GetValue("Defense");
-        
-        // Fórmula simples de dano
-        float damage = Mathf.Max(1f, attackPower - defense);
-        
-        // Aplicar dano à vida do alvo
-        if (target.TryGet("Health", out var healthInstance))
-        {
-            var damageModifier = new AttributeModifier
-            {
-                Type = ModifierType.Additive,
-                Value = -damage,
-                Duration = 0f, // Instantâneo
-                Source = "Combat Damage"
-            };
-            
-            healthInstance.AddModifier(damageModifier);
-            
-            Debug.Log($"Dano aplicado: {damage}. Vida restante: {healthInstance.CurrentValue}");
-        }
+public class Combat : MonoBehaviour {
+    public void Attack(EntityAttributes target) {
+        float damage = stats["Attack"];
+        float defense = target["Defense"];
+        float finalDamage = Mathf.Max(1f, damage - defense);
+        target.AddFlat("Health", -finalDamage, 0f, "Combat");
     }
 }
 ```
 
-### 📈 Sistema de Progressão
+### Sistema de Poções
 
 ```csharp
-public class LevelSystem : MonoBehaviour
-{
-    private EntityAttributes playerStats;
-    
-    void Start()
-    {
-        playerStats = GetComponent<EntityAttributes>();
+public class HealthPotion : MonoBehaviour {
+    [SerializeField] private float healAmount = 50f;
+    public void Use(EntityAttributes target) {
+        target.AddFlat("Health", healAmount, 0f, "Health Potion");
     }
-    
-    public void LevelUp()
-    {
-        // Aumentar atributos permanentemente
-        ApplyPermanentBonus("Health", 20f);
-        ApplyPermanentBonus("Mana", 15f);
-        ApplyPermanentBonus("Strength", 5f);
-        ApplyPermanentBonus("Defense", 3f);
-    }
-    
-    private void ApplyPermanentBonus(string attributeName, float bonus)
-    {
-        if (playerStats.TryGet(attributeName, out var attribute))
-        {
-            var levelBonus = new AttributeModifier
-            {
-                Type = ModifierType.Additive,
-                Value = bonus,
-                Duration = -1f, // Permanente
-                Source = "Level Up"
-            };
-            
-            attribute.AddModifier(levelBonus);
-        }
+}
+
+public class StrengthPotion : MonoBehaviour {
+    [SerializeField] private float bonus = 20f;
+    [SerializeField] private float duration = 30f;
+    public void Use(EntityAttributes target) {
+        target.AddPercentage("Strength", bonus, duration, "Strength Potion");
     }
 }
 ```
 
-### 🖥️ Integração com UI
+### Sistema de Buff/Debuff
 
 ```csharp
-using UnityEngine;
-using UnityEngine.UI;
-
-public class PlayerUI : MonoBehaviour
-{
-    [SerializeField] private Slider healthBar;
-    [SerializeField] private Slider manaBar;
-    [SerializeField] private Text strengthText;
-    
-    private EntityAttributes playerStats;
-    
-    void Start()
-    {
-        playerStats = FindObjectOfType<Player>().GetComponent<EntityAttributes>();
-        playerStats.OnAttributeChanged += UpdateUI;
-        
-        // Atualização inicial
-        UpdateUI(null, 0f);
+public class StatusEffects : MonoBehaviour {
+    public void ApplyPoison(EntityAttributes target) {
+        target.AddPercentage("Health", -10f, 8f, "Poison");
     }
-    
-    private void UpdateUI(AttributeType changedAttribute, float newValue)
-    {
-        // Atualizar barra de vida
-        if (playerStats.TryGet("Health", out var health))
-        {
-            healthBar.value = health.CurrentValue / health.BaseValue;
-        }
-        
-        // Atualizar barra de mana
-        if (playerStats.TryGet("Mana", out var mana))
-        {
-            manaBar.value = mana.CurrentValue / mana.BaseValue;
-        }
-        
-        // Atualizar texto de força
-        float strength = playerStats.GetValue("Strength");
-        strengthText.text = $"STR: {strength:F0}";
+    public void ApplyHaste(EntityAttributes target) {
+        target.AddPercentage("Speed", 50f, 5f, "Haste");
+    }
+    public void ApplyWeakness(EntityAttributes target) {
+        target.AddPercentage("Strength", -25f, 12f, "Weakness");
+    }
+}
+```
+
+### Sistema de Level Up
+
+```csharp
+public class LevelSystem : MonoBehaviour {
+    public void LevelUp(EntityAttributes character) {
+        character.AddFlat("Health", 20f, 0f, "Level Up");
+        character.AddFlat("Mana", 15f, 0f, "Level Up");
+        character.AddFlat("Strength", 5f, 0f, "Level Up");
     }
 }
 ```
 
 ---
 
-## 📚 Conceitos Principais
+## 🎨 Interface Visual
 
-<table>
-<tr>
-<th>Conceito</th>
-<th>Descrição</th>
-<th>Exemplo</th>
-</tr>
-<tr>
-<td><strong>AttributeType</strong></td>
-<td>Definição base de um atributo</td>
-<td>Health, Mana, Strength</td>
-</tr>
-<tr>
-<td><strong>AttributeSet</strong></td>
-<td>Coleção de atributos com valores iniciais</td>
-<td>PlayerBaseStats.asset</td>
-</tr>
-<tr>
-<td><strong>EntityAttributes</strong></td>
-<td>Componente que gerencia atributos de uma entidade</td>
-<td>MonoBehaviour no Player</td>
-</tr>
-<tr>
-<td><strong>ModifiableAttributeInstance</strong></td>
-<td>Instância de atributo que pode receber modificadores</td>
-<td>health.AddModifier(buff)</td>
-</tr>
-<tr>
-<td><strong>AttributeModifier</strong></td>
-<td>Modificação temporária ou permanente</td>
-<td>Poção, Buff, Debuff</td>
-</tr>
-</table>
+### Attributes Manager
+
+* Tools → Attributes Manager
+* Criação de atributos customizados
+* Configuração de *Attribute Sets*
+* Interface drag-and-drop
+
+### Runtime Inspector
+
+* Visualização em tempo real
+* Lista de modificadores ativos
+* Debug detalhado de cálculos
+* Botão para limpar modificadores
 
 ---
 
-## 🎨 Exemplo Completo: RPG Character
+## 🛠️ API Completa
 
-<details>
-<summary><strong>🎭 Clique para ver o exemplo completo</strong></summary>
+### EntityAttributes
 
 ```csharp
-using StatsForge;
-using UnityEngine;
+// Acesso
+float this[string name] { get; set; }
+float GetValue(string name);
+float GetBaseValue(string name);
+bool HasAttribute(string name);
+bool TryGetAttribute(string name, out ModifiableAttributeInstance instance);
 
-public class RPGCharacter : MonoBehaviour
-{
-    [Header("Stats Configuration")]
-    [SerializeField] private AttributeSet characterStats;
-    
-    [Header("UI References")]
-    [SerializeField] private CharacterUI characterUI;
-    
-    private EntityAttributes stats;
-    
-    void Start()
-    {
-        InitializeCharacter();
-        SetupEventListeners();
-    }
-    
-    private void InitializeCharacter()
-    {
-        stats = GetComponent<EntityAttributes>();
-        
-        // Aplicar modificadores iniciais baseados na classe
-        ApplyClassModifiers();
-    }
-    
-    private void ApplyClassModifiers()
-    {
-        // Exemplo: Guerreiro tem mais vida e força
-        if (characterStats.name.Contains("Warrior"))
-        {
-            ApplyModifier("Health", ModifierType.Multiplicative, 1.5f, -1f, "Warrior Class");
-            ApplyModifier("Strength", ModifierType.Additive, 10f, -1f, "Warrior Class");
-        }
-        // Exemplo: Mago tem mais mana
-        else if (characterStats.name.Contains("Mage"))
-        {
-            ApplyModifier("Mana", ModifierType.Multiplicative, 2f, -1f, "Mage Class");
-            ApplyModifier("Strength", ModifierType.Additive, -5f, -1f, "Mage Class");
-        }
-    }
-    
-    private void ApplyModifier(string attributeName, ModifierType type, float value, float duration, string source)
-    {
-        if (stats.TryGet(attributeName, out var attribute))
-        {
-            var modifier = new AttributeModifier
-            {
-                Type = type,
-                Value = value,
-                Duration = duration,
-                Source = source
-            };
-            
-            attribute.AddModifier(modifier);
-        }
-    }
-    
-    private void SetupEventListeners()
-    {
-        stats.OnAttributeChanged += (attr, value) => 
-        {
-            characterUI?.UpdateAttribute(attr.Name, value);
-            
-            // Verificar se morreu
-            if (attr.Name == "Health" && value <= 0)
-            {
-                OnCharacterDeath();
-            }
-        };
-    }
-    
-    private void OnCharacterDeath()
-    {
-        Debug.Log($"{gameObject.name} morreu!");
-        // Implementar lógica de morte
-    }
-    
-    // Métodos públicos para interação
-    public void Heal(float amount)
-    {
-        ApplyModifier("Health", ModifierType.Additive, amount, 0f, "Healing");
-    }
-    
-    public void TakeDamage(float damage)
-    {
-        ApplyModifier("Health", ModifierType.Additive, -damage, 0f, "Damage");
-    }
-    
-    public void DrinkManaPotion(float amount)
-    {
-        ApplyModifier("Mana", ModifierType.Additive, amount, 0f, "Mana Potion");
-    }
-    
-    public void ApplyTemporaryBuff(string attributeName, float value, float duration)
-    {
-        ApplyModifier(attributeName, ModifierType.Additive, value, duration, "Temporary Buff");
-    }
-}
+// Modificação
+void SetValue(string name, float value);
+void SetBaseValue(string name, float value);
+
+// Modificadores
+void AddFlat(string name, float value, float duration, string source);
+void AddPercentage(string name, float percentage, float duration, string source);
+void AddMultiplier(string name, float multiplier, float duration, string source);
+void ApplyModifier(string name, AttributeModifier modifier);
+bool RemoveModifier(string name, string modifierId);
+void ClearAllModifiers(string name = null);
+void ClearModifiersBySource(string source, string name = null);
+
+// Utilitários
+int GetModifierCount(string name);
+IEnumerable<string> GetAttributeNames();
+IReadOnlyDictionary<string, ModifiableAttributeInstance> AllAttributes;
 ```
 
-</details>
+### AttributeModifierHelper
+
+```csharp
+AttributeModifier CreateFlat(float value, string source, float duration, string id);
+AttributeModifier CreatePercentage(float percentage, string source, float duration, string id);
+AttributeModifier CreateMultiplier(float multiplier, string source, float duration, string id);
+AttributeModifier CreateBuff(float value, float duration, ModifierType type, string source, string id);
+AttributeModifier CreateDebuff(float value, float duration, ModifierType type, string source, string id);
+```
 
 ---
 
-## 🛠️ Ferramentas Incluídas
+## 📊 Tipos de Modificadores
 
-- 🎨 **Attributes Manager**: Interface visual para criação de atributos
-- 📊 **Attribute Set Creator**: Criador de conjuntos predefinidos
-- 👁️ **Runtime Inspector**: Visualização em tempo real dos valores
-- 🔧 **Editor Integration**: Inspectors customizados
+| Tipo                   | Descrição                    | Exemplo       |
+| ---------------------- | ---------------------------- | ------------- |
+| **Flat**               | Valor fixo                   | `+50 Health`  |
+| **PercentageAdd**      | Percentual do valor base     | `+20% Speed`  |
+| **PercentageMultiply** | Multiplica o resultado final | `x1.5 Damage` |
+
+### Aplicações
+
+| Aplicação     | Descrição             | Duração        |
+| ------------- | --------------------- | -------------- |
+| **Instant**   | Aplica e remove       | `0s`           |
+| **Temporary** | Valor temporário      | `5s, 10s, ...` |
+| **Permanent** | Permanente            | `∞`            |
+| **OverTime**  | Aplicado gradualmente | `X segundos`   |
 
 ---
 
 ## ❓ FAQ
 
 <details>
-<summary>❓ <strong>Como obter o valor de um atributo?</strong></summary>
+<summary><strong>Como funciona o cálculo de modificadores?</strong></summary>
 
-```csharp
-EntityAttributes stats = GetComponent<EntityAttributes>();
-float health = stats.GetValue("Health");
+```
+1. Valor Base: 100
+2. Flat: +20 = 120
+3. Percentage: +10% do base (100) = +10 → 130
+4. Multiply: x1.2 = 156
 ```
 
 </details>
 
 <details>
-<summary>❓ <strong>Como aplicar um buff temporário?</strong></summary>
+<summary><strong>Posso usar em projetos comerciais?</strong></summary>
+Sim, a licença MIT permite uso comercial.
+</details>
+
+<details>
+<summary><strong>Como debugar cálculos?</strong></summary>
+
+Use o botão `?` no inspector ou:
 
 ```csharp
-if (stats.TryGet("Strength", out var strength))
-{
-    var buff = new AttributeModifier
-    {
-        Type = ModifierType.Additive,
-        Value = 10f,
-        Duration = 30f,
-        Source = "Strength Potion"
-    };
-    strength.AddModifier(buff);
-}
+Debug.Log(attributeInstance.GetCalculationBreakdown());
 ```
 
 </details>
 
-<details>
-<summary>❓ <strong>Como escutar mudanças em atributos?</strong></summary>
-
-```csharp
-entityAttributes.OnAttributeChanged += (attributeType, newValue) => 
-{
-    Debug.Log($"{attributeType.Name} mudou para: {newValue}");
-};
-```
-
-</details>
-
-<details>
-<summary>❓ <strong>Posso usar em projetos comerciais?</strong></summary>
-
-Sim! Este projeto usa a licença MIT, permitindo uso comercial.
-
-</details>
-
 ---
 
-## 📊 Roadmap
+## 📞 Suporte
 
-- [x] 🎨 Sistema básico de atributos
-- [x] 🔧 Editor visual integrado
-- [ ] 🌐 Sistema de Networking
-- [ ] 💾 Salvamento/Carregamento automático
-- [ ] 🎯 Attribute Conditions e Requirements
-- [ ] 📈 Analytics e Debugging tools
-- [ ] 🔧 Visual Scripting Support
-- [ ] 📱 Mobile Optimization
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Por favor:
-
-1. 🍴 Fork o projeto
-2. 🌿 Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. 💾 Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. 📤 Push para a branch (`git push origin feature/AmazingFeature`)
-5. 🔄 Abra um Pull Request
-
----
-
-## 🆘 Suporte
-
-- 📧 **Email**: [seu-email@exemplo.com]
-- 💬 **Discord**: [Link do servidor]
-- 🐛 **Issues**: [GitHub Issues](https://github.com/Natteens/statsforge/issues)
-- 📖 **Wiki**: [GitHub Wiki](https://github.com/Natteens/statsforge/wiki)
-
----
-
-## 📝 Changelog
-
-Veja o [CHANGELOG.md](CHANGELOG.md) para detalhes sobre mudanças e atualizações.
-
-## 📄 Licença
-
-Este projeto está licenciado sob a **Licença MIT** - veja o arquivo [LICENSE.md](LICENSE.md) para detalhes.
+* 🐛 [Issues](https://github.com/Natteens/statsforge/issues)
+* 📧 Email: `natteens.social@gmail.com`
+* 📖 [Wiki](https://github.com/Natteens/statsforge/wiki)
 
 ---
 
 <div align="center">
 
-**⭐ Se este projeto te ajudou, considere dar uma estrela! ⭐**
+**⚡ Desenvolvido por [Natteens](https://github.com/Natteens) ⚡**
 
-**Feito com ❤️ por [Natteens](https://github.com/Natteens)**
-
-[![GitHub stars](https://img.shields.io/github/stars/Natteens/statsforge.svg?style=social&label=Star)](https://github.com/Natteens/statsforge)
-[![GitHub forks](https://img.shields.io/github/forks/Natteens/statsforge.svg?style=social&label=Fork)](https://github.com/Natteens/statsforge/fork)
+[![GitHub stars](https://img.shields.io/github/stars/Natteens/statsforge.svg?style=social\&label=Star)](https://github.com/Natteens/statsforge)
 
 </div>
