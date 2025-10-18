@@ -10,12 +10,11 @@ namespace StatsForge.Editor
     public class AttributesEditorWindow : EditorWindow
     {
         private enum Tab { Attributes, Sets }
-        
         private Tab currentTab = Tab.Attributes;
-        private AttributeDatabase database;
         
-        private Vector2 leftScrollPos;
-        private Vector2 rightScrollPos;
+        private AttributeDatabase database;
+        private Vector2 leftScroll;
+        private Vector2 rightScroll;
         
         private string attributeName = "";
         private string attributeCategory = "Core";
@@ -25,7 +24,6 @@ namespace StatsForge.Editor
         private string setName = "";
         private string setSearch = "";
         private AttributeSet editingSet;
-        private AttributeSet creatingSet;
         private Dictionary<string, float> setValues = new Dictionary<string, float>();
         private bool isCreatingNewSet = false;
 
@@ -33,7 +31,7 @@ namespace StatsForge.Editor
         public static void ShowWindow()
         {
             var window = GetWindow<AttributesEditorWindow>("Attributes Manager");
-            window.minSize = new Vector2(700, 500);
+            window.minSize = new Vector2(1000, 600);
         }
 
         private void OnEnable()
@@ -44,24 +42,14 @@ namespace StatsForge.Editor
         private void LoadDatabase()
         {
             database = Resources.Load<AttributeDatabase>("Attributes/AttributeDatabase");
-            
-            if (database == null)
-            {
-                CreateDatabase();
-            }
-            
-            if (database != null)
-            {
-                database.Validate();
-            }
+            if (database == null) CreateDatabase();
+            database?.Validate();
         }
 
         private void CreateDatabase()
         {
             if (!Directory.Exists("Assets/Resources/Attributes"))
-            {
                 Directory.CreateDirectory("Assets/Resources/Attributes");
-            }
             
             database = CreateInstance<AttributeDatabase>();
             AssetDatabase.CreateAsset(database, "Assets/Resources/Attributes/AttributeDatabase.asset");
@@ -73,302 +61,365 @@ namespace StatsForge.Editor
         {
             if (database == null)
             {
-                EditorGUILayout.Space(20);
-                EditorGUILayout.HelpBox("Database not found!", MessageType.Error);
-                if (GUILayout.Button("Create New Database", GUILayout.Height(30)))
-                {
-                    CreateDatabase();
-                }
+                DrawEmptyState();
                 return;
             }
 
+            EditorGUILayout.BeginVertical();
+            
             DrawHeader();
             DrawTabs();
-            DrawContent();
+            
+            EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(true));
+            
+            if (currentTab == Tab.Attributes)
+                DrawAttributesLayout();
+            else
+                DrawSetsLayout();
+            
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawEmptyState()
+        {
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            
+            EditorGUILayout.BeginVertical(GUILayout.Width(250));
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.LabelField("No Database", EditorStyles.largeLabel);
+            GUILayout.Space(10);
+            EditorGUILayout.LabelField("Create a database to start", EditorStyles.miniLabel);
+            GUILayout.Space(20);
+            
+            if (GUILayout.Button("Create Database", GUILayout.Height(35)))
+                CreateDatabase();
+            
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndVertical();
+            
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+            GUILayout.FlexibleSpace();
         }
 
         private void DrawHeader()
         {
-            GUILayout.Space(10);
             EditorGUILayout.LabelField("Attributes Manager", EditorStyles.largeLabel);
-            EditorGUILayout.LabelField("Create and manage attributes and sets", EditorStyles.miniLabel);
-            GUILayout.Space(10);
+            EditorGUILayout.Space(5);
         }
 
         private void DrawTabs()
         {
-            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginHorizontal(GUILayout.Height(40));
+            GUILayout.Space(5);
             
-            GUI.backgroundColor = currentTab == Tab.Attributes ? Color.cyan : Color.white;
-            if (GUILayout.Button("Attributes", EditorStyles.toolbarButton))
-            {
+            if (DrawTabButton("Attributes", currentTab == Tab.Attributes))
                 currentTab = Tab.Attributes;
-                ClearFields();
-            }
             
-            GUI.backgroundColor = currentTab == Tab.Sets ? Color.cyan : Color.white;
-            if (GUILayout.Button("Attribute Sets", EditorStyles.toolbarButton))
-            {
+            if (DrawTabButton("Sets", currentTab == Tab.Sets))
                 currentTab = Tab.Sets;
-                ClearFields();
-            }
             
-            GUI.backgroundColor = Color.white;
+            GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
             
+            var divider = EditorGUILayout.GetControlRect(GUILayout.Height(1));
+            EditorGUI.DrawRect(divider, new Color(0.2f, 0.2f, 0.2f));
+            GUILayout.Space(5);
+        }
+
+        private bool DrawTabButton(string label, bool isActive)
+        {
+            Color prevColor = GUI.color;
+            GUI.color = isActive ? new Color(0.3f, 0.65f, 1f) : new Color(0.6f, 0.6f, 0.6f);
+            
+            bool clicked = GUILayout.Button(label, GUILayout.Width(100), GUILayout.Height(28));
+            
+            GUI.color = prevColor;
+            return clicked;
+        }
+
+        private void DrawAttributesLayout()
+        {
+            DrawLeftPanel_Attributes();
             GUILayout.Space(10);
+            DrawRightPanel_Attributes();
         }
 
-        private void DrawContent()
+        private void DrawLeftPanel_Attributes()
         {
-            EditorGUILayout.BeginHorizontal();
-            
-            if (currentTab == Tab.Attributes)
-            {
-                DrawAttributesTab();
-            }
-            else
-            {
-                DrawSetsTab();
-            }
-            
-            EditorGUILayout.EndHorizontal();
-        }
-
-        private void DrawAttributesTab()
-        {
-            DrawAttributesLeftPanel();
+            EditorGUILayout.BeginVertical(GUILayout.Width(380), GUILayout.ExpandHeight(true));
             GUILayout.Space(10);
-            DrawAttributesRightPanel();
-        }
-
-        private void DrawSetsTab()
-        {
-            DrawSetsLeftPanel();
-            GUILayout.Space(10);
-            DrawSetsRightPanel();
-        }
-
-        private void DrawAttributesLeftPanel()
-        {
-            EditorGUILayout.BeginVertical(GUILayout.Width(350));
             
-            EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Browse Attributes", EditorStyles.boldLabel);
+            GUILayout.Space(8);
             
-            attributeSearch = EditorGUILayout.TextField("Search:", attributeSearch);
+            attributeSearch = EditorGUILayout.TextField("Search", attributeSearch, GUILayout.Height(22));
             
             var categories = new List<string> { "All" };
-            if (database != null && database.Categories != null)
-            {
-                categories.AddRange(database.Categories);
-            }
-            
+            categories.AddRange(database.Categories);
             int catIndex = categories.IndexOf(selectedCategory);
             if (catIndex == -1) catIndex = 0;
-            catIndex = EditorGUILayout.Popup("Category:", catIndex, categories.ToArray());
+            catIndex = EditorGUILayout.Popup("Category", catIndex, categories.ToArray());
             selectedCategory = categories[catIndex];
             
             GUILayout.Space(10);
-            EditorGUILayout.LabelField("Available Attributes", EditorStyles.boldLabel);
             
-            var filteredAttrs = GetFilteredAttributes();
+            var filtered = GetFilteredAttributes();
+            EditorGUILayout.LabelField($"{filtered.Count} attributes", EditorStyles.miniLabel);
+            GUILayout.Space(5);
             
-            if (filteredAttrs.Count == 0)
+            leftScroll = EditorGUILayout.BeginScrollView(leftScroll, GUILayout.ExpandHeight(true));
+            
+            if (filtered.Count == 0)
             {
-                EditorGUILayout.HelpBox("No attributes found.", MessageType.Info);
+                EditorGUILayout.Space(30);
+                var style = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleCenter };
+                EditorGUILayout.LabelField("No attributes", style, GUILayout.Height(30));
             }
             else
             {
-                leftScrollPos = EditorGUILayout.BeginScrollView(leftScrollPos);
-                
-                foreach (var attr in filteredAttrs)
+                foreach (var attr in filtered)
                 {
-                    DrawAttributeCard(attr);
+                    DrawAttributeItem(attr);
                 }
-                
-                EditorGUILayout.EndScrollView();
             }
             
+            EditorGUILayout.EndScrollView();
+            GUILayout.Space(10);
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawAttributeCard(AttributeType attr)
+        private void DrawAttributeItem(AttributeType attr)
         {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginHorizontal("box", GUILayout.Height(50));
+            GUILayout.Space(8);
             
-            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true));
+            GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField(attr.Name, EditorStyles.boldLabel);
-            EditorGUILayout.LabelField($"Category: {attr.Category}", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField(attr.Category, EditorStyles.miniLabel);
+            GUILayout.FlexibleSpace();
             EditorGUILayout.EndVertical();
             
-            GUILayout.FlexibleSpace();
-            
-            GUI.backgroundColor = Color.red;
-            if (GUILayout.Button("X", GUILayout.Width(25)))
+            if (GUILayout.Button("Delete", GUILayout.Width(60), GUILayout.Height(40)))
             {
-                if (EditorUtility.DisplayDialog("Confirm", $"Delete '{attr.Name}'?", "Yes", "No"))
+                if (EditorUtility.DisplayDialog("Delete", $"Delete '{attr.Name}'?", "Delete", "Cancel"))
                 {
                     database.RemoveAttribute(attr.Name);
                     EditorUtility.SetDirty(database);
                 }
             }
-            GUI.backgroundColor = Color.white;
             
+            GUILayout.Space(8);
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndVertical();
         }
 
-        private void DrawAttributesRightPanel()
+        private void DrawRightPanel_Attributes()
         {
-            EditorGUILayout.BeginVertical(GUILayout.Width(330));
+            EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            GUILayout.Space(10);
             
-            EditorGUILayout.LabelField("Create Attribute", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Create New Attribute", EditorStyles.boldLabel);
+            GUILayout.Space(8);
             
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.BeginVertical("box");
+            GUILayout.Space(5);
             
-            attributeName = EditorGUILayout.TextField("Name:", attributeName);
-            attributeCategory = EditorGUILayout.TextField("Category:", attributeCategory);
+            EditorGUILayout.LabelField("Name", EditorStyles.miniLabel);
+            attributeName = EditorGUILayout.TextField(attributeName, GUILayout.Height(22));
             
             GUILayout.Space(10);
             
+            EditorGUILayout.LabelField("Category", EditorStyles.miniLabel);
+            attributeCategory = EditorGUILayout.TextField(attributeCategory, GUILayout.Height(22));
+            
+            GUILayout.Space(15);
+            
             GUI.enabled = !string.IsNullOrWhiteSpace(attributeName);
-            if (GUILayout.Button("Create Attribute", GUILayout.Height(30)))
+            if (GUILayout.Button("Create Attribute", GUILayout.Height(35)))
             {
-                CreateAttribute();
+                var attr = database.CreateAttribute(attributeName.Trim(), attributeCategory.Trim());
+                if (attr != null)
+                {
+                    EditorUtility.SetDirty(database);
+                    attributeName = "";
+                    attributeCategory = "Core";
+                    attributeSearch = "";
+                }
             }
             GUI.enabled = true;
             
-            EditorGUILayout.EndVertical();
-            
-            GUILayout.Space(20);
-            
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            EditorGUILayout.LabelField("Statistics", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField($"Total: {database.AllAttributes.Count}");
-            EditorGUILayout.LabelField($"Categories: {database.Categories.Count()}");
-            EditorGUILayout.EndVertical();
-            
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawSetsLeftPanel()
-        {
-            EditorGUILayout.BeginVertical(GUILayout.Width(350));
-            
-            EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
-            setSearch = EditorGUILayout.TextField("Search:", setSearch);
-            
-            GUILayout.Space(10);
-            EditorGUILayout.LabelField("Attribute Sets", EditorStyles.boldLabel);
-            
-            var sets = GetFilteredSets();
-            
-            if (sets.Count == 0)
-            {
-                EditorGUILayout.HelpBox("No sets found.", MessageType.Info);
-            }
-            else
-            {
-                leftScrollPos = EditorGUILayout.BeginScrollView(leftScrollPos);
-                
-                foreach (var set in sets)
-                {
-                    DrawSetCard(set);
-                }
-                
-                EditorGUILayout.EndScrollView();
-            }
-            
-            EditorGUILayout.EndVertical();
-        }
-
-        private void DrawSetCard(AttributeSet set)
-        {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            EditorGUILayout.BeginHorizontal();
-            
-            EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField(set.name, EditorStyles.boldLabel);
-            EditorGUILayout.LabelField($"{set.Attributes.Count} attributes", EditorStyles.miniLabel);
+            GUILayout.Space(5);
             EditorGUILayout.EndVertical();
             
             GUILayout.FlexibleSpace();
-            
-            if (GUILayout.Button("Edit", GUILayout.Width(40)))
-            {
-                EditSet(set);
-            }
-            
-            GUI.backgroundColor = Color.red;
-            if (GUILayout.Button("X", GUILayout.Width(25)))
-            {
-                if (EditorUtility.DisplayDialog("Confirm", $"Delete '{set.name}'?", "Yes", "No"))
-                {
-                    DeleteSet(set);
-                }
-            }
-            GUI.backgroundColor = Color.white;
-            
-            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(10);
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawSetsRightPanel()
+        private void DrawSetsLayout()
         {
-            EditorGUILayout.BeginVertical(GUILayout.Width(330));
-            
             if (editingSet != null || isCreatingNewSet)
             {
-                DrawSetEditor();
+                DrawLeftPanel_SetsList();
+                GUILayout.Space(10);
+                DrawRightPanel_SetEditor();
             }
             else
             {
-                DrawSetCreator();
+                DrawLeftPanel_SetsList();
+                GUILayout.Space(10);
+                DrawRightPanel_SetCreate();
             }
-            
-            EditorGUILayout.EndVertical();
         }
 
-        private void DrawSetCreator()
+        private void DrawLeftPanel_SetsList()
         {
-            EditorGUILayout.LabelField("Create Attribute Set", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical(GUILayout.Width(380), GUILayout.ExpandHeight(true));
+            GUILayout.Space(10);
             
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField("Attribute Sets", EditorStyles.boldLabel);
+            GUILayout.Space(8);
             
-            setName = EditorGUILayout.TextField("Set Name:", setName);
+            setSearch = EditorGUILayout.TextField("Search", setSearch, GUILayout.Height(22));
             
             GUILayout.Space(10);
             
-            GUI.enabled = !string.IsNullOrWhiteSpace(setName);
-            if (GUILayout.Button("Create and Configure", GUILayout.Height(30)))
+            var sets = GetFilteredSets();
+            EditorGUILayout.LabelField($"{sets.Count} sets", EditorStyles.miniLabel);
+            GUILayout.Space(5);
+            
+            leftScroll = EditorGUILayout.BeginScrollView(leftScroll, GUILayout.ExpandHeight(true));
+            
+            if (sets.Count == 0)
             {
-                CreateSetAndStartEditing();
+                EditorGUILayout.Space(30);
+                var style = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleCenter };
+                EditorGUILayout.LabelField("No sets", style, GUILayout.Height(30));
+            }
+            else
+            {
+                foreach (var set in sets)
+                {
+                    DrawSetItem(set);
+                }
+            }
+            
+            EditorGUILayout.EndScrollView();
+            GUILayout.Space(10);
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawSetItem(AttributeSet set)
+        {
+            EditorGUILayout.BeginHorizontal("box", GUILayout.Height(55));
+            GUILayout.Space(8);
+            
+            EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true));
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.LabelField(set.name, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField($"{set.Attributes.Count} attributes", EditorStyles.miniLabel);
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndVertical();
+            
+            if (GUILayout.Button("Edit", GUILayout.Width(50), GUILayout.Height(45)))
+            {
+                editingSet = set;
+                isCreatingNewSet = false;
+                setValues.Clear();
+                foreach (var entry in set.Attributes)
+                    if (entry.type != null)
+                        setValues[entry.type.Name] = entry.baseValue;
+            }
+            
+            if (GUILayout.Button("Delete", GUILayout.Width(60), GUILayout.Height(45)))
+            {
+                if (EditorUtility.DisplayDialog("Delete", $"Delete '{set.name}'?", "Delete", "Cancel"))
+                {
+                    string path = AssetDatabase.GetAssetPath(set);
+                    AssetDatabase.DeleteAsset(path);
+                    if (set == editingSet)
+                        editingSet = null;
+                }
+            }
+            
+            GUILayout.Space(8);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawRightPanel_SetCreate()
+        {
+            EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            GUILayout.Space(10);
+            
+            EditorGUILayout.LabelField("Create New Set", EditorStyles.boldLabel);
+            GUILayout.Space(8);
+            
+            EditorGUILayout.BeginVertical("box");
+            GUILayout.Space(5);
+            
+            EditorGUILayout.LabelField("Set Name", EditorStyles.miniLabel);
+            setName = EditorGUILayout.TextField(setName, GUILayout.Height(22));
+            
+            GUILayout.Space(15);
+            
+            GUI.enabled = !string.IsNullOrWhiteSpace(setName);
+            if (GUILayout.Button("Create and Edit", GUILayout.Height(35)))
+            {
+                if (!Directory.Exists("Assets/Resources/Attributes/Sets"))
+                    Directory.CreateDirectory("Assets/Resources/Attributes/Sets");
+                
+                var newSet = CreateInstance<AttributeSet>();
+                string path = $"Assets/Resources/Attributes/Sets/so_{setName.Trim()}.asset";
+                AssetDatabase.CreateAsset(newSet, path);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                
+                isCreatingNewSet = true;
+                setValues.Clear();
+                setName = "";
             }
             GUI.enabled = true;
             
+            GUILayout.Space(5);
+            EditorGUILayout.EndVertical();
+            
+            GUILayout.FlexibleSpace();
+            GUILayout.Space(10);
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawSetEditor()
+        private void DrawRightPanel_SetEditor()
         {
-            var targetSet = editingSet ?? creatingSet;
-            string title = editingSet != null ? "Editing Set" : "Configuring Set";
-            
-            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-            EditorGUILayout.LabelField($"Set: {targetSet.name}", EditorStyles.miniLabel);
-            
+            EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             GUILayout.Space(10);
             
-            EditorGUILayout.LabelField("Configure Attributes:", EditorStyles.boldLabel);
+            var targetSet = editingSet ?? GetCreatingSet();
+            string title = editingSet != null ? "Editing: " + editingSet.name : "Configuring New Set";
             
-            rightScrollPos = EditorGUILayout.BeginScrollView(rightScrollPos, GUILayout.Height(250));
+            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+            GUILayout.Space(8);
+            EditorGUILayout.LabelField("Select attributes", EditorStyles.miniLabel);
+            GUILayout.Space(5);
             
-            foreach (var attr in database.AllAttributes)
+            rightScroll = EditorGUILayout.BeginScrollView(rightScroll, GUILayout.ExpandHeight(true));
+            
+            if (database?.AllAttributes != null && database.AllAttributes.Count > 0)
             {
-                if (attr == null) continue;
-                
-                DrawAttributeToggle(attr, targetSet);
+                foreach (var attr in database.AllAttributes)
+                {
+                    if (attr == null) continue;
+                    DrawSetAttributeToggle(attr, targetSet);
+                }
+            }
+            else
+            {
+                EditorGUILayout.Space(30);
+                var style = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleCenter };
+                EditorGUILayout.LabelField("No attributes available", style, GUILayout.Height(30));
             }
             
             EditorGUILayout.EndScrollView();
@@ -376,43 +427,72 @@ namespace StatsForge.Editor
             GUILayout.Space(10);
             
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Save"))
+            
+            if (GUILayout.Button("Save", GUILayout.Height(35)))
             {
-                SaveSetConfiguration();
+                if (targetSet != null)
+                {
+                    foreach (var kvp in setValues)
+                    {
+                        var attr = database.GetAttribute(kvp.Key);
+                        if (attr != null && targetSet.HasAttribute(attr))
+                            targetSet.AddAttribute(attr, kvp.Value);
+                    }
+                    EditorUtility.SetDirty(targetSet);
+                    AssetDatabase.SaveAssets();
+                }
+                
+                editingSet = null;
+                isCreatingNewSet = false;
+                setValues.Clear();
             }
-            if (GUILayout.Button("Cancel"))
+            
+            if (GUILayout.Button("Cancel", GUILayout.Height(35)))
             {
-                CancelSetEdit();
+                if (isCreatingNewSet)
+                {
+                    var creatingSet = GetCreatingSet();
+                    if (creatingSet != null)
+                        AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(creatingSet));
+                }
+                
+                editingSet = null;
+                isCreatingNewSet = false;
+                setValues.Clear();
             }
+            
             EditorGUILayout.EndHorizontal();
+            
+            GUILayout.Space(10);
+            EditorGUILayout.EndVertical();
         }
 
-        private void DrawAttributeToggle(AttributeType attr, AttributeSet targetSet)
+        private void DrawSetAttributeToggle(AttributeType attr, AttributeSet targetSet)
         {
             bool hasAttr = targetSet.HasAttribute(attr);
             
-            EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+            EditorGUILayout.BeginHorizontal(GUILayout.Height(30));
+            GUILayout.Space(5);
             
             bool newHasAttr = EditorGUILayout.Toggle(hasAttr, GUILayout.Width(20));
-            EditorGUILayout.LabelField(attr.Name, GUILayout.Width(120));
-            EditorGUILayout.LabelField($"({attr.Category})", EditorStyles.miniLabel, GUILayout.Width(60));
+            
+            EditorGUILayout.LabelField(attr.Name, GUILayout.Width(110));
+            EditorGUILayout.LabelField(attr.Category, EditorStyles.miniLabel, GUILayout.Width(80));
+            
+            GUILayout.FlexibleSpace();
             
             if (newHasAttr)
             {
                 if (!setValues.ContainsKey(attr.Name))
-                {
                     setValues[attr.Name] = hasAttr ? targetSet.GetBaseValue(attr) : 0f;
-                }
                 
-                setValues[attr.Name] = EditorGUILayout.FloatField(setValues[attr.Name], GUILayout.Width(50));
+                setValues[attr.Name] = EditorGUILayout.FloatField(setValues[attr.Name], GUILayout.Width(60));
             }
             
             if (newHasAttr != hasAttr)
             {
                 if (newHasAttr)
-                {
                     targetSet.AddAttribute(attr, setValues.GetValueOrDefault(attr.Name, 0f));
-                }
                 else
                 {
                     targetSet.RemoveAttribute(attr);
@@ -421,6 +501,7 @@ namespace StatsForge.Editor
                 EditorUtility.SetDirty(targetSet);
             }
             
+            GUILayout.Space(5);
             EditorGUILayout.EndHorizontal();
         }
 
@@ -431,14 +512,10 @@ namespace StatsForge.Editor
             var attrs = database.AllAttributes.Where(a => a != null);
             
             if (!string.IsNullOrEmpty(attributeSearch))
-            {
                 attrs = attrs.Where(a => a.Name.ToLower().Contains(attributeSearch.ToLower()));
-            }
             
             if (selectedCategory != "All")
-            {
                 attrs = attrs.Where(a => a.Category == selectedCategory);
-            }
             
             return attrs.OrderBy(a => a.Name).ToList();
         }
@@ -450,114 +527,26 @@ namespace StatsForge.Editor
                            .Where(s => s != null);
             
             if (!string.IsNullOrEmpty(setSearch))
-            {
                 sets = sets.Where(s => s.name.ToLower().Contains(setSearch.ToLower()));
-            }
             
             return sets.OrderBy(s => s.name).ToList();
         }
 
-        private void CreateAttribute()
+        private AttributeSet GetCreatingSet()
         {
-            var attr = database.CreateAttribute(attributeName.Trim(), attributeCategory.Trim());
-            if (attr != null)
-            {
-                EditorUtility.SetDirty(database);
-                attributeName = "";
-                attributeCategory = "Core";
-            }
-        }
-
-        private void CreateSetAndStartEditing()
-        {
-            if (!Directory.Exists("Assets/Resources/Attributes/Sets"))
-            {
-                Directory.CreateDirectory("Assets/Resources/Attributes/Sets");
-            }
+            if (!isCreatingNewSet) return null;
             
-            creatingSet = CreateInstance<AttributeSet>();
-            string path = $"Assets/Resources/Attributes/Sets/so_{setName.Trim()}.asset";
-            AssetDatabase.CreateAsset(creatingSet, path);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+            var guids = AssetDatabase.FindAssets("t:AttributeSet");
+            var sets = guids.Select(guid => AssetDatabase.LoadAssetAtPath<AttributeSet>(AssetDatabase.GUIDToAssetPath(guid)))
+                           .Where(s => s != null);
             
-            isCreatingNewSet = true;
-            setValues.Clear();
-        }
-
-        private void EditSet(AttributeSet set)
-        {
-            editingSet = set;
-            setValues.Clear();
-            
-            foreach (var entry in set.Attributes)
-            {
-                if (entry.type != null)
-                {
-                    setValues[entry.type.Name] = entry.baseValue;
-                }
-            }
-        }
-
-        private void SaveSetConfiguration()
-        {
-            var targetSet = editingSet ?? creatingSet;
-            
-            foreach (var kvp in setValues)
-            {
-                var attr = database.GetAttribute(kvp.Key);
-                if (attr != null && targetSet.HasAttribute(attr))
-                {
-                    targetSet.AddAttribute(attr, kvp.Value);
-                }
-            }
-            
-            EditorUtility.SetDirty(targetSet);
-            AssetDatabase.SaveAssets();
-            CancelSetEdit();
-        }
-
-        private void CancelSetEdit()
-        {
-            if (isCreatingNewSet && creatingSet != null)
-            {
-                string path = AssetDatabase.GetAssetPath(creatingSet);
-                AssetDatabase.DeleteAsset(path);
-            }
-            
-            editingSet = null;
-            creatingSet = null;
-            isCreatingNewSet = false;
-            setName = "";
-            setValues.Clear();
-        }
-
-        private void DeleteSet(AttributeSet set)
-        {
-            if (set == editingSet)
-            {
-                CancelSetEdit();
-            }
-            
-            string path = AssetDatabase.GetAssetPath(set);
-            AssetDatabase.DeleteAsset(path);
-        }
-
-        private void ClearFields()
-        {
-            attributeName = "";
-            attributeCategory = "Core";
-            attributeSearch = "";
-            selectedCategory = "All";
-            setName = "";
-            setSearch = "";
-            CancelSetEdit();
+            return sets.OrderByDescending(s => System.IO.File.GetLastWriteTime(AssetDatabase.GetAssetPath(s))).FirstOrDefault();
         }
     }
 
     public static class DictionaryExtensions
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue))
+        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default)
         {
             return dictionary.TryGetValue(key, out TValue value) ? value : defaultValue;
         }
