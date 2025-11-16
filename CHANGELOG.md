@@ -1,3 +1,10 @@
+## [0.1.1](https://github.com/Natteens/statsforge/compare/v0.1.0...v0.1.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* Refactor AttributesEditorWindow to modular tabbed UI ([c573d9b](https://github.com/Natteens/statsforge/commit/c573d9b25dc2fc5b9892b89b3367889ab4333228))
+
 # 📝 Changelog
 
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.

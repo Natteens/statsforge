@@ -1,6 +1,6 @@
 {
   "name": "com.natteens.statsforge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "StatsForge",
   "description": "Sistema modular de atributos com modificadores temporais, suporte a runtime e interface visual completa para Unity.",
   "keywords": [
